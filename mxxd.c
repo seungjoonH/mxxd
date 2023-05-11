@@ -85,7 +85,7 @@ int getFileSize(char *file) {
 /// @param mode The conversion mode to be used
 /// @return A status code indicating the result of the operation
 int execute(Mode mode) {
-	int ret = 0;
+	ErrorType ret = 0;
 
 	FILE *infp = fopen(input, "rb");
 	FILE *outfp = fopen(output, "wb+");
@@ -107,10 +107,9 @@ int execute(Mode mode) {
 ///				 and ASCII representation
 /// @param infp The input binary file
 /// @param outfp The output text file
-/// @return A status code indicating the result of the operation
-int binToTxt(FILE *infp, FILE *outfp) {
-	int ret = 0;
-	
+/// @return Returns NO_ERROR on success or FILE_IO_ERR if
+/// 				there is an error with file I/O
+int binToTxt(FILE *infp, FILE *outfp) {	
 	int idx = 0;
 	int size = getFileSize(input);
 	FILE *tmpfp = tmpfile();
@@ -146,7 +145,7 @@ int binToTxt(FILE *infp, FILE *outfp) {
 	rewind(tmpfp);
 	binToBin(tmpfp, outfp);
 
-	return ret;
+	return NO_ERROR;
 }
 
 /// @brief Converts a text file containing hexadecimal values
@@ -213,7 +212,7 @@ int binToBin(FILE *infp, FILE *outfp) {
 
 	while ((r = fread(buf, 1, BUF_SIZ, infp))) {
 		w = fwrite(buf, 1, r, outfp);
-		if (w < r) return 1;
+		if (w < r) return FILE_IO_ERR;
 	}
 
 	return NO_ERROR;
