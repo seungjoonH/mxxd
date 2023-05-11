@@ -1,3 +1,8 @@
+/* TEAM MEMBER */
+// Kim Hongchan (21700214)
+// Hyeon Seungjoon (21800788)
+
+/* PREPROCESSORS */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +15,7 @@
 #define HEX_LEN 41
 #define ASCII_LEN 17
 
+/* ENUMS */
 typedef enum {
 	NO_ERROR, FILE_IO_ERR,
 	FILE_CVT_ERR, WRG_IPT_ERR, ERR_LEN
@@ -19,20 +25,26 @@ typedef enum {
 	BIN_TO_TXT, TXT_TO_BIN
 } Mode;
 
+/* FUNCTION PROTOTYPES */
 int getFileSize(char *file);
 int execute(Mode mode);
 int binToTxt(FILE *infp, FILE *outfp);
 int txtToBin(FILE *infp, FILE *outfp);
 int binToBin(FILE *infp, FILE *outfp);
 
+/* GLOBAL VARIABLES */
 char *input;
 char *output;
 char *errMsg[ERR_LEN] = {
 	0x0, "File open error", "File convert error",
 	"Wrong input format\n./mxxd <inputfile> <outputfile>\n./mxxd -r <inputfile> <outputfile>",
 };
+char *fileType[2] = {
+	"binary file", "text file"
+};
 
-int main(int argc, char **argv) {
+/* MAIN FUNCTION */
+int main(int argc, char *argv[]) {
 	ErrorType err = NO_ERROR;
 	bool reverse = false;
 	if (argc > 1) reverse = !strcmp(argv[1], "-r");
@@ -42,24 +54,36 @@ int main(int argc, char **argv) {
 
 	if (!validInput) err = WRG_IPT_ERR;
 
+	Mode mode = reverse ? TXT_TO_BIN : BIN_TO_TXT;
+
 	if (!err) {
-		Mode mode = reverse ? TXT_TO_BIN : BIN_TO_TXT;
 		input = argv[mode + 1]; 
 		output = argv[mode + 2];
-
 		err = execute(mode);
 	}
 
 	if (err) fprintf(stderr, "[ERROR] %s\n", errMsg[err]);
+	else {
+		printf("CONVERT: %s(%s) --> %s(%s)\n", input, fileType[mode], output, fileType[1 - mode]);
+		printf("Program successfully terminated\n");
+	}
 	return err;
 }
 
+/* FUNCTIONS */
+
+/// @brief Gets the size of a file
+/// @param file The name of the file whose size is to be determined
+/// @return The size of the file in bytes
 int getFileSize(char *file) {
 	struct stat st;
 	stat(file, &st);
 	return st.st_size;
 }
 
+/// @brief Executes a conversion operation on a file
+/// @param mode The conversion mode to be used
+/// @return A status code indicating the result of the operation
 int execute(Mode mode) {
 	int ret = 0;
 
@@ -79,6 +103,11 @@ int execute(Mode mode) {
 	return ret;
 }
 
+/// @brief Converts a binary file to a text file with hexadecimal
+///				 and ASCII representation
+/// @param infp The input binary file
+/// @param outfp The output text file
+/// @return A status code indicating the result of the operation
 int binToTxt(FILE *infp, FILE *outfp) {
 	int ret = 0;
 	
@@ -120,6 +149,13 @@ int binToTxt(FILE *infp, FILE *outfp) {
 	return ret;
 }
 
+/// @brief Converts a text file containing hexadecimal values
+///				 to a binary file
+/// @param infp The input text file pointer
+/// @param outfp The output binary file pointer
+/// @return Returns NO_ERROR on success or FILE_IO_ERR if
+/// 				there is an error with file I/O or FILE_CVT_ERR 
+///					if the file format is invalid
 int txtToBin(FILE *infp, FILE *outfp) {
 	char buf[BUF_SIZ];
 	int size = 0;
@@ -165,6 +201,12 @@ int txtToBin(FILE *infp, FILE *outfp) {
 	return NO_ERROR;
 }
 
+/// @brief Copies the contents of one binary file to 
+///				 another binary file.
+/// @param infp Pointer to the input FILE object.
+/// @param outfp Pointer to the output FILE object.
+/// @return Returns NO_ERROR if the operation is successful, 
+/// 			  or an error code otherwise.
 int binToBin(FILE *infp, FILE *outfp) {
 	char buf[BUF_SIZ];
 	int r, w;
