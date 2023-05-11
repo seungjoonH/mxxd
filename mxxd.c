@@ -12,7 +12,7 @@
 
 typedef enum {
 	NO_ERROR, FILE_IO_ERR,
-	WRG_IPT_ERR, ERR_LEN
+	FILE_CVT_ERR, WRG_IPT_ERR, ERR_LEN
 } ErrorType;
 
 typedef enum {
@@ -28,8 +28,8 @@ int binToBin(FILE *infp, FILE *outfp);
 char *input;
 char *output;
 char *errMsg[ERR_LEN] = {
-	0x0, "File open error",
-	"Wrong input format\n./mxxd inputfile outputfile\n./mxxd -r inputfile outputfile",
+	0x0, "File open error", "File convert error",
+	"Wrong input format\n./mxxd <inputfile> <outputfile>\n./mxxd -r <inputfile> <outputfile>",
 };
 
 int main(int argc, char **argv) {
@@ -82,6 +82,7 @@ int execute(Mode mode) {
 int binToTxt(FILE *infp, FILE *outfp) {
 	int ret = 0;
 	
+	int idx = 0;
 	int size = getFileSize(input);
 	FILE *tmpfp = tmpfile();
 	if (tmpfp == NULL) return FILE_IO_ERR;
@@ -97,7 +98,7 @@ int binToTxt(FILE *infp, FILE *outfp) {
 			*line = '\0'; *index = '\0'; 
 			*hex = '\0';  *ascii = '\0';
 
-			sprintf(index, "%08x", i);
+			sprintf(index, "%08x", idx + i);
 			for (int j = 0; j < 16; j++) {
 				unsigned char c = buf[i + j];
 				sprintf(hex, "%s%02x", hex, c);
@@ -110,6 +111,7 @@ int binToTxt(FILE *infp, FILE *outfp) {
 			fwrite(line, 1, strlen(line), tmpfp);
 		}
 		size -= readSize;
+		idx += readSize;
 	}
 
 	rewind(tmpfp);
@@ -136,7 +138,7 @@ int txtToBin(FILE *infp, FILE *outfp) {
 		for (int i = 0; i < 9; i++) 
 			validInput &= strtok(NULL, " ") != NULL;
 
-		if (!validInput) return FILE_IO_ERR;
+		if (!validInput) return FILE_CVT_ERR;
 
 		buf[49] = '\0';
 		char *hex = buf + 10;
